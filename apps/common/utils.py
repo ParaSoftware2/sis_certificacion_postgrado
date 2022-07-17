@@ -27,23 +27,23 @@ class EstilosPdf:
         self.style1.fontSize = 6
 
         self.style2 = getSampleStyleSheet()['Normal']
-        self.style2.fontSize = 28
+        self.style2.fontSize = 24
         self.style2.alignment = TA_CENTER
         self.style2.fontName = 'Helvetica-Bold'
 
         self.style3 = getSampleStyleSheet()['Normal']
-        self.style3.fontSize = 12
+        self.style3.fontSize = 11.5
 
         self.style_footer = getSampleStyleSheet()['Normal']
         self.style_footer.alignment = TA_CENTER
-        self.style_footer.fontSize = 12
+        self.style_footer.fontSize = 11
 
         self.style_fecha_lugar = getSampleStyleSheet()['Normal']
         self.style_fecha_lugar.alignment = TA_CENTER
-        self.style_fecha_lugar.fontSize = 12
+        self.style_fecha_lugar.fontSize = 11.5
 
         self.style4 = getSampleStyleSheet()['Normal']
-        self.style4.fontSize = 12
+        self.style4.fontSize = 11.5
         self.style4.leading = 20
         self.style4.alignment = TA_JUSTIFY
         self.style4.padding = '20px'
@@ -51,7 +51,7 @@ class EstilosPdf:
         self.style5 = getSampleStyleSheet()['Normal']
         self.style5.fontName = 'Helvetica-Bold'
         self.style5.leading = 14
-        self.style5.fontSize = 12.5
+        self.style5.fontSize = 12
         self.style5.alignment = TA_CENTER
 
         self.style_fullname = getSampleStyleSheet()['Normal']
@@ -60,7 +60,7 @@ class EstilosPdf:
 
         self.style_art = getSampleStyleSheet()['Normal']
         self.style_art.fontSize = 8
-        self.style_art.leading = 12
+        self.style_art.leading = 10
         self.style_art.alignment = TA_JUSTIFY
         self.style_art.padding = '15px'
 
@@ -71,8 +71,7 @@ class EstilosPdf:
         self.table_style1 = [
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('GRID', (0, 0), (-1, -1), 0.25, colors.black, None),
-            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+            ('GRID', (0, 0), (-1, -1), 0.2, colors.black, None),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 0)
         ]
