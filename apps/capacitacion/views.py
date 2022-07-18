@@ -778,7 +778,7 @@ class GeneraCertificadoPdf(LoginRequiredMixin, PdfCertView):
         img = qr.make_image(fill_color='black', back_color='white')
         img.save(self.path_code_qr)
         imagen = os.path.join(self.path_code_qr)
-        self.canvas.drawImage(ImageReader(imagen), 278, -35, width=60, preserveAspectRatio=True, mask='auto')
+        self.canvas.drawImage(ImageReader(imagen), 278, -45, width=60, preserveAspectRatio=True, mask='auto')
         os.remove(self.path_code_qr)
 
     def get_certificados(self, **kwargs):
@@ -804,7 +804,7 @@ class GeneraCertificadoPdf(LoginRequiredMixin, PdfCertView):
         cabecera3.drawOn(self.canvas, 150, 747 - h)
 
         titulo = Paragraph('CERTIFICADO', style=self.style2)
-        w, h = titulo.wrap(425, 0)
+        w, h = titulo.wrap(440, 0)
         titulo.drawOn(self.canvas, 87, 672 - h)
 
         otorgado = Paragraph('Otorgado a:', style=self.style3)
@@ -823,10 +823,7 @@ class GeneraCertificadoPdf(LoginRequiredMixin, PdfCertView):
             self.capacitacion.nombre.upper(),
             ', aprobado con ' + self.capacitacion.justificacion.upper() if len(self.capacitacion.justificacion) else '',
             tipo_canal,
-            self.capacitacion.fecha_inicio.day, self.meses[self.capacitacion.fecha_inicio.month],
-            self.capacitacion.fecha_inicio.year,
-            self.capacitacion.fecha_fin.day, self.meses[self.capacitacion.fecha_fin.month],
-            self.capacitacion.fecha_fin.year,
+            self.obtener_fecha_capacitacion(self.capacitacion.fecha_inicio, self.capacitacion.fecha_fin),
             self.horas_academicas
         ), style=self.style4)
 
@@ -837,7 +834,7 @@ class GeneraCertificadoPdf(LoginRequiredMixin, PdfCertView):
         nombre_completo.drawOn(self.canvas, 87, 575 - h)
 
         w, h = parrafo1.wrap(439, 0)
-        parrafo1.drawOn(self.canvas, 87, 530 - h)
+        parrafo1.drawOn(self.canvas, 87, 534 - h)
 
         fecha_y_lugar = Paragraph(self.fecha_lugar.format(
             self.fecha_culminado.day,
@@ -845,7 +842,7 @@ class GeneraCertificadoPdf(LoginRequiredMixin, PdfCertView):
             self.fecha_culminado.year),
             style=self.style_fecha_lugar)
         w, h = fecha_y_lugar.wrap(439, 0)
-        fecha_y_lugar.drawOn(self.canvas, 87, 392 - h)
+        fecha_y_lugar.drawOn(self.canvas, 87, 400 - h)
 
         responsables_firma = self.capacitacion.responsablefirma_set.all()
         cx = 0
@@ -890,7 +887,7 @@ class GeneraCertificadoPdf(LoginRequiredMixin, PdfCertView):
         articulo = Paragraph(self.articulo, style=self.style_art)
         data_art = [[]]
         data_art[0] = [articulo]
-        tbl_art = Table(data=data_art, rowHeights=66, repeatCols=1, colWidths=[439])
+        tbl_art = Table(data=data_art, rowHeights=62, repeatCols=1, colWidths=[439])
         tbl_art.setStyle(self.table_style1)
         w, h = tbl_art.wrap(0, 0)
         tbl_art.drawOn(self.canvas, 87, 50)
@@ -1462,7 +1459,7 @@ class GenerarMultipleCertificadosPdfView(LoginRequiredMixin, PdfCertView):
         img = qr.make_image(fill_color='black', back_color='white')
         img.save(self.path_code_qr)
         imagen = os.path.join(self.path_code_qr)
-        self.canvas.drawImage(ImageReader(imagen), 278, -35, width=60, preserveAspectRatio=True, mask='auto')
+        self.canvas.drawImage(ImageReader(imagen), 278, -45, width=60, preserveAspectRatio=True, mask='auto')
         os.remove(self.path_code_qr)
 
     def get_certificados(self, **kwargs):
@@ -1489,7 +1486,7 @@ class GenerarMultipleCertificadosPdfView(LoginRequiredMixin, PdfCertView):
             cabecera3.drawOn(self.canvas, 150, 747 - h)
 
             titulo = Paragraph('CERTIFICADO', style=self.style2)
-            w, h = titulo.wrap(425, 0)
+            w, h = titulo.wrap(440, 0)
             titulo.drawOn(self.canvas, 87, 672 - h)
 
             otorgado = Paragraph('Otorgado a:', style=self.style3)
@@ -1523,10 +1520,7 @@ class GenerarMultipleCertificadosPdfView(LoginRequiredMixin, PdfCertView):
                 ', aprobado con ' + self.capacitacion.justificacion.upper() if len(
                     self.capacitacion.justificacion) else '',
                 tipo_canal,
-                self.capacitacion.fecha_inicio.day, self.meses[self.capacitacion.fecha_inicio.month],
-                self.capacitacion.fecha_inicio.year,
-                self.capacitacion.fecha_fin.day, self.meses[self.capacitacion.fecha_fin.month],
-                self.capacitacion.fecha_fin.year,
+                self.obtener_fecha_capacitacion(self.capacitacion.fecha_inicio, self.capacitacion.fecha_fin),
                 self.horas_academicas
             ), style=self.style4)
 
@@ -1537,13 +1531,13 @@ class GenerarMultipleCertificadosPdfView(LoginRequiredMixin, PdfCertView):
             nombre_completo.drawOn(self.canvas, 87, 575 - h)
 
             w, h = parrafo1.wrap(439, 0)
-            parrafo1.drawOn(self.canvas, 87, 530 - h)
+            parrafo1.drawOn(self.canvas, 87, 534 - h)
 
             fecha_y_lugar = Paragraph(self.fecha_lugar.format(
                 self.fecha_culminado.day, self.meses[self.fecha_culminado.month], self.fecha_culminado.year),
                 style=self.style_fecha_lugar)
             w, h = fecha_y_lugar.wrap(439, 0)
-            fecha_y_lugar.drawOn(self.canvas, 87, 392 - h)
+            fecha_y_lugar.drawOn(self.canvas, 87, 400 - h)
 
             responsables_firma = self.capacitacion.responsablefirma_set.all()
             cx = 0
@@ -1589,7 +1583,7 @@ class GenerarMultipleCertificadosPdfView(LoginRequiredMixin, PdfCertView):
             articulo = Paragraph(self.articulo, style=self.style_art)
             data_art = [[]]
             data_art[0] = [articulo]
-            tbl_art = Table(data=data_art, rowHeights=66, repeatCols=1, colWidths=[439])
+            tbl_art = Table(data=data_art, rowHeights=62, repeatCols=1, colWidths=[439])
             tbl_art.setStyle(self.table_style1)
             w, h = tbl_art.wrap(0, 0)
             tbl_art.drawOn(self.canvas, 87, 50)
@@ -1891,7 +1885,7 @@ class GeneraCertificadoPdfPorModulo(LoginRequiredMixin, PdfCertView):
         img = qr.make_image(fill_color='black', back_color='white')
         img.save(self.path_code_qr)
         imagen = os.path.join(self.path_code_qr)
-        self.canvas.drawImage(ImageReader(imagen), 278, -35, width=60, preserveAspectRatio=True, mask='auto')
+        self.canvas.drawImage(ImageReader(imagen), 278, -45, width=60, preserveAspectRatio=True, mask='auto')
         os.remove(self.path_code_qr)
 
     def get_certificados(self, **kwargs):
@@ -1923,7 +1917,7 @@ class GeneraCertificadoPdfPorModulo(LoginRequiredMixin, PdfCertView):
             cabecera3.drawOn(self.canvas, 150, 747 - h)
 
             titulo = Paragraph('CERTIFICADO', style=self.style2)
-            w, h = titulo.wrap(425, 0)
+            w, h = titulo.wrap(440, 0)
             titulo.drawOn(self.canvas, 87, 672 - h)
 
             otorgado = Paragraph('Otorgado a:', style=self.style3)
@@ -1940,8 +1934,7 @@ class GeneraCertificadoPdfPorModulo(LoginRequiredMixin, PdfCertView):
                 ', aprobado con ' + self.capacitacion.justificacion.upper() if len(
                     self.capacitacion.justificacion) else '',
                 tipo_canal,
-                fecha_inicio.day, self.meses[fecha_inicio.month], fecha_inicio.year,
-                fecha_fin.day, self.meses[fecha_fin.month], fecha_fin.year,
+                self.obtener_fecha_capacitacion(fecha_inicio, fecha_fin),
                 self.horas_academicas
             ), style=self.style4)
 
@@ -1952,7 +1945,7 @@ class GeneraCertificadoPdfPorModulo(LoginRequiredMixin, PdfCertView):
             nombre_completo.drawOn(self.canvas, 87, 575 - h)
 
             w, h = parrafo1.wrap(439, 0)
-            parrafo1.drawOn(self.canvas, 87, 530 - h)
+            parrafo1.drawOn(self.canvas, 87, 534 - h)
 
             fecha_y_lugar = Paragraph(self.fecha_lugar.format(
                 self.fecha_culminado.day,
@@ -1960,7 +1953,7 @@ class GeneraCertificadoPdfPorModulo(LoginRequiredMixin, PdfCertView):
                 self.fecha_culminado.year),
                 style=self.style_fecha_lugar)
             w, h = fecha_y_lugar.wrap(439, 0)
-            fecha_y_lugar.drawOn(self.canvas, 87, 392 - h)
+            fecha_y_lugar.drawOn(self.canvas, 87, 400 - h)
 
             responsables_firma = self.capacitacion.responsablefirma_set.all()
             cx = 0
@@ -2008,7 +2001,7 @@ class GeneraCertificadoPdfPorModulo(LoginRequiredMixin, PdfCertView):
             articulo = Paragraph(self.articulo, style=self.style_art)
             data_art = [[]]
             data_art[0] = [articulo]
-            tbl_art = Table(data=data_art, rowHeights=66, repeatCols=1, colWidths=[439])
+            tbl_art = Table(data=data_art, rowHeights=62, repeatCols=1, colWidths=[439])
             tbl_art.setStyle(self.table_style1)
             w, h = tbl_art.wrap(0, 0)
             tbl_art.drawOn(self.canvas, 87, 50)
@@ -2178,7 +2171,7 @@ class GenerarMultipleCertificadosPorModPdfView(LoginRequiredMixin, PdfCertView):
         img = qr.make_image(fill_color='black', back_color='white')
         img.save(self.path_code_qr)
         imagen = os.path.join(self.path_code_qr)
-        self.canvas.drawImage(ImageReader(imagen), 278, -35, width=60, preserveAspectRatio=True, mask='auto')
+        self.canvas.drawImage(ImageReader(imagen), 278, -45, width=60, preserveAspectRatio=True, mask='auto')
         os.remove(self.path_code_qr)
 
     def get_certificados(self, **kwargs):
@@ -2205,7 +2198,7 @@ class GenerarMultipleCertificadosPorModPdfView(LoginRequiredMixin, PdfCertView):
             cabecera3.drawOn(self.canvas, 150, 747 - h)
 
             titulo = Paragraph('CERTIFICADO', style=self.style2)
-            w, h = titulo.wrap(425, 0)
+            w, h = titulo.wrap(440, 0)
             titulo.drawOn(self.canvas, 87, 672 - h)
 
             otorgado = Paragraph('Otorgado a:', style=self.style3)
@@ -2226,8 +2219,7 @@ class GenerarMultipleCertificadosPorModPdfView(LoginRequiredMixin, PdfCertView):
                 ', aprobado con ' + self.capacitacion.justificacion.upper() if len(
                     self.capacitacion.justificacion) else '',
                 tipo_canal,
-                self.fecha_inicio.day, self.meses[self.fecha_inicio.month], self.fecha_inicio.year,
-                self.fecha_fin.day, self.meses[self.fecha_fin.month], self.fecha_fin.year,
+                self.obtener_fecha_capacitacion(self.fecha_inicio, self.fecha_fin),
                 self.horas_academicas
             ), style=self.style4)
 
@@ -2253,7 +2245,7 @@ class GenerarMultipleCertificadosPorModPdfView(LoginRequiredMixin, PdfCertView):
             nombre_completo.drawOn(self.canvas, 87, 575 - h)
 
             w, h = parrafo1.wrap(439, 0)
-            parrafo1.drawOn(self.canvas, 87, 530 - h)
+            parrafo1.drawOn(self.canvas, 87, 534 - h)
 
             fecha_y_lugar = Paragraph(self.fecha_lugar.format(
                 self.fecha_culminado.day,
@@ -2261,7 +2253,7 @@ class GenerarMultipleCertificadosPorModPdfView(LoginRequiredMixin, PdfCertView):
                 self.fecha_culminado.year),
                 style=self.style_fecha_lugar)
             w, h = fecha_y_lugar.wrap(439, 0)
-            fecha_y_lugar.drawOn(self.canvas, 87, 392 - h)
+            fecha_y_lugar.drawOn(self.canvas, 87, 400 - h)
 
             responsables_firma = self.capacitacion.responsablefirma_set.all()
             cx = 0
@@ -2306,7 +2298,7 @@ class GenerarMultipleCertificadosPorModPdfView(LoginRequiredMixin, PdfCertView):
             articulo = Paragraph(self.articulo, style=self.style_art)
             data_art = [[]]
             data_art[0] = [articulo]
-            tbl_art = Table(data=data_art, rowHeights=66, repeatCols=1, colWidths=[439])
+            tbl_art = Table(data=data_art, rowHeights=62, repeatCols=1, colWidths=[439])
             tbl_art.setStyle(self.table_style1)
             w, h = tbl_art.wrap(0, 0)
             tbl_art.drawOn(self.canvas, 87, 50)
