@@ -625,16 +625,16 @@ class VerActaAsistenciaView(LoginRequiredMixin, BaseLogin, TemplateView):
             array_a = []
             for d in detalles:
                 array_a.append(d.estado)
-            array_asistencia.append({
-                'id_acta': d.acta_asistencia_id,
-                'id_persona': d.persona_id,
-                'numero_documento': p.persona.numero_documento,
-                'apellido_paterno': p.persona.apellido_paterno,
-                'apellido_materno': p.persona.apellido_materno,
-                'nombres': p.persona.nombres,
-                'estados': array_a,
-                'resultado': acta.notaparticipante_set.filter(persona=p.persona).last().resultado,
-            })
+                array_asistencia.append({
+                    'id_acta': d.acta_asistencia_id,
+                    'id_persona': d.persona_id,
+                    'numero_documento': p.persona.numero_documento,
+                    'apellido_paterno': p.persona.apellido_paterno,
+                    'apellido_materno': p.persona.apellido_materno,
+                    'nombres': p.persona.nombres,
+                    'estados': array_a,
+                    'resultado': acta.notaparticipante_set.filter(persona=p.persona).last().resultado,
+                })
         context.update({
             'acta': acta,
             'fechas_unicas': fechas_unicas,
@@ -671,16 +671,16 @@ class VerActaAsistenciaModalView(LoginRequiredMixin, BaseLogin, TemplateView):
             array_a = []
             for d in detalles:
                 array_a.append(d.estado)
-            array_asistencia.append({
-                'id_acta': d.acta_asistencia_id,
-                'id_persona': d.persona_id,
-                'numero_documento': p.persona.numero_documento,
-                'apellido_paterno': p.persona.apellido_paterno,
-                'apellido_materno': p.persona.apellido_materno,
-                'nombres': p.persona.nombres,
-                'estados': array_a,
-                'resultado': acta.notaparticipante_set.filter(persona=p.persona).last().resultado,
-            })
+                array_asistencia.append({
+                    'id_acta': d.acta_asistencia_id,
+                    'id_persona': d.persona_id,
+                    'numero_documento': p.persona.numero_documento,
+                    'apellido_paterno': p.persona.apellido_paterno,
+                    'apellido_materno': p.persona.apellido_materno,
+                    'nombres': p.persona.nombres,
+                    'estados': array_a,
+                    'resultado': acta.notaparticipante_set.filter(persona=p.persona).last().resultado,
+                })
         context.update({
             'acta': acta,
             'es_permitido': permitido,
@@ -955,6 +955,18 @@ class GeneraCertificadoPdf(LoginRequiredMixin, PdfCertView):
 class BandejaValidacionView(LoginRequiredMixin, BaseLogin, TemplateView):
     template_name = 'capacitacion/bandeja_validacion.html'
 
+    @property
+    def estado(self):
+        return self.request.GET.get("estado", 'todos')
+
+    @property
+    def inicio(self):
+        return self.request.GET.get("inicio", "{}-01-01".format(datetime.now().year))
+
+    @property
+    def fin(self):
+        return self.request.GET.get("fin", "{}-12-31".format(datetime.now().year))
+
     def dispatch(self, request, *args, **kwargs):
         if not (self.request.session.get('tipo_persona', None) == TIPO_PERSONA_CONSEJO_UNASAM
                 or self.request.session.get('username', None) == 'admin'):
@@ -968,12 +980,25 @@ class ListaCapacitacionValidarView(LoginRequiredMixin, BaseLogin, View):
     def get(self, request, *args, **kwargs):
         search_param = self.request.GET.get('search[value]')
         filtro = self.request.GET.get('filtro')
+        estado = kwargs.get('estado')
+        inicio = kwargs.get('inicio')
+        fin = kwargs.get('fin')
         capacitaciones = Capacitacion.objects.none()
         if filtro:
             ''
         else:
             capacitaciones = Capacitacion.objects.all().exclude(
                 estado=ESTADO_PROYECTO_REGISTRADO).order_by('-fecha_creacion')
+        
+        if estado and estado in ['por_validar', 'validado', 'cancelado', 'culminado', 'observado']:
+            capacitaciones = capacitaciones.filter(estado=estado)
+            
+        if inicio is not None:
+            capacitaciones = capacitaciones.filter(fecha_inicio__gte=inicio)
+
+        if fin is not None:
+            capacitaciones = capacitaciones.filter(fecha_fin__lte=fin)
+
         if len(search_param) > 3:
             capacitaciones = capacitaciones.filter(nombre__icontains=search_param)
         draw, page = datatable_page(capacitaciones, request)
@@ -1011,39 +1036,39 @@ class ListaCapacitacionValidarView(LoginRequiredMixin, BaseLogin, View):
                 mod_cont += 1
                 link = reverse('capacitacion:editar', kwargs={'pk': a.id})
                 acta = ActaAsistencia.objects.filter(modulo=m).order_by('fecha_creacion').first()
-                his_rev = HistorialRevision.objects.filter(capacitacion=a.id).order_by('-id').first()
+                his_rev = HistorialRevision.objects.filter(capacitacion=a).order_by('-id').first()
                 if acta:
                     mm += 1
                     asistencia = asistencia + '''<button class="btn btn-success btn-xs v-acta" data-id="{}" 
                     capacitacion-id="{}" style="margin-top:2px;margin-left:2px;"> Ver acta {}
                     </button>'''.format(acta.id, a.id, mm)
-            combo = '''<input type='hidden' value='{}' id='estado-{}'>
-                   <select id='accion_revisar' class='{} form-control' data-id='{}'>
-                   <option value='por_validar' {}>Por validar</option>
-                   <option value='validado' {}>Validado</option>""
-                   <option value='cancelado' {}>Cancelado</option>
-                   <option value='culminado' {}>Culminado</option>
-                   <option value='observado' {}>Observado</option>
-                   </select><label id="msje1_{}"></label>
-               '''.format(a.estado, a.id, color, a.id, select1, select2, select3, select4, select5, a.id)
-            lista_equipos_data.append([
-                cont,
-                '<p style="font-size:14px;">{}</p>'.format(a.facultad or '-'),
-                '<a style="font-size:14px;text-decoration: none;" href="{}">{}</a>'.format(link, a.nombre),
-                '<label style="font-size:12px;">{} al {}</label>'.format(a.fecha_inicio, a.fecha_fin),
-                ('''<button class="btn btn-info btn-xs" id="ver_archivo_pdf" data-archivo={}>
-                  Ver</button>'''.format(a.ruta_proyecto_pdf) if a.ruta_proyecto_pdf else ''
-                 ),
-                asistencia,
-                a.observacion_revision or '-',
-                combo if a.estado != ESTADO_PROYECTO_CULMINADO else '''
-                <label class="text-info"> {}</label>
-                <input id="fecha_culminado" name="fecha_culminado" type="date" value="{}" data-id="{}"  class="form-control">
-                '''.format(a.get_estado_display(), his_rev.fecha_creacion.strftime("%Y-%m-%d"), a.id),
-                self.get_boton_bandeja_asignar_firmante(a) if a.estado == ESTADO_PROYECTO_VALIDADO else '',
-                self.get_boton_genera_certificados(a) if a.estado == ESTADO_PROYECTO_CULMINADO else '',
-                (self.get_boton_envia_correo(a) if a.estado == ESTADO_PROYECTO_CULMINADO else '')
-            ])
+                combo = '''<input type='hidden' value='{}' id='estado-{}'>
+                    <select id='accion_revisar' class='{} form-control' data-id='{}'>
+                    <option value='por_validar' {}>Por validar</option>
+                    <option value='validado' {}>Validado</option>""
+                    <option value='cancelado' {}>Cancelado</option>
+                    <option value='culminado' {}>Culminado</option>
+                    <option value='observado' {}>Observado</option>
+                    </select><label id="msje1_{}"></label>
+                '''.format(a.estado, a.id, color, a.id, select1, select2, select3, select4, select5, a.id)
+                lista_equipos_data.append([
+                    cont,
+                    '<p style="font-size:14px;">{}</p>'.format(a.facultad or '-'),
+                    '<a style="font-size:14px;text-decoration: none;" href="{}">{}</a>'.format(link, a.nombre),
+                    '<label style="font-size:12px;">{} al {}</label>'.format(a.fecha_inicio, a.fecha_fin),
+                    ('''<button class="btn btn-info btn-xs" id="ver_archivo_pdf" data-archivo={}>
+                    Ver</button>'''.format(a.ruta_proyecto_pdf) if a.ruta_proyecto_pdf else ''
+                    ),
+                    asistencia,
+                    a.observacion_revision or '-',
+                    combo if a.estado != ESTADO_PROYECTO_CULMINADO else '''
+                    <label class="text-info"> {}</label>
+                    <input id="fecha_culminado" name="fecha_culminado" type="date" value="{}" data-id="{}"  class="form-control">
+                    '''.format(a.get_estado_display(), his_rev.fecha_creacion.strftime("%Y-%m-%d"), a.id),
+                    self.get_boton_bandeja_asignar_firmante(a) if a.estado == ESTADO_PROYECTO_VALIDADO else '',
+                    self.get_boton_genera_certificados(a) if a.estado == ESTADO_PROYECTO_CULMINADO else '',
+                    (self.get_boton_envia_correo(a) if a.estado == ESTADO_PROYECTO_CULMINADO else '')
+                ])
         data = {
             'draw': draw,
             'recordsTotal': capacitaciones.count(),
