@@ -523,9 +523,10 @@ class ActaAsistenciaCreateView(LoginRequiredMixin, BaseLogin, CreateView):
                     self.msg = '''Verifique que esté completo los datos de correo electrónico ya que es un dato
                                   obligatorio'''
                 elif d[6]:
-                    if not re.match('^[(a-z0-9\_\-\.)]+@[(a-z0-9\_\-\.)]+\.[(a-z)]{2,15}$',
-                                    d[6].lower().strip()):  # noqa
-                        self.msg = 'Formato de correo incorrecto, revisar el archivo Excel fila:{}'.format(cont)
+                    correo = d[6].lower().strip()
+                    servicios = ["unasam.edu.pe", "gmail.com", "yahoo.com", "outlook.com"]
+                    if correo.split("@")[1] not in servicios:  # noqa
+                        self.msg = 'Formato de correo incorrecto, revisar el archivo Excel fila:{} - correo: {}'.format(cont, d[6])
                 array_a = []
                 for f in range(7, cant_fechas + 7):
                     array_a.append(str(d[f]))
