@@ -1,4 +1,4 @@
-# sis_capacitaciones_unasam
+# Sistema de Capacitaciones OGCU
 
 # Instalacion y despliegue
 
@@ -43,17 +43,13 @@ EMAIL_PORT=587
 - python manage.py migrate
 - python manage.py collectstatic
 ```
-**EJECUTAR LOS SEEDERS**
-```
-- python manage.py loaddata apps/persona/seeders/facultades.json
-- python manage.py loaddata apps/persona/seeders/docentes.json
-```
+
 **ARRANCAR LA APLICACIÓN**
 ```
 - python manage.py runserver
 ```
 ### Indicaciones para Base de datos:
 
-Ejecutar el contenido del archivo `ejecutar.sql` ubicado en `apps/script-bd/` o [aqui](https://github.com/cpaucarc/sis_capacitaciones_ccead/blob/main/apps/scripts-bd/ejecutar.sql) (en el orden indicado) en la **consola de postgres** o un **DBMS**
+Ejecutar el contenido del archivo: Es recomendable usar la **consola de postgres** o un DBMS como **DBeaver**
 
-- Nota: No se recomienda **HeidiSQL** porque arroja error al no reconocer los caracteres $$
+[Archivo con las consultas de postgres](https://github.com/cpaucarc/sis_capacitaciones_ccead/files/9160647/sistema-capacitaciones-ogcu-consultas.txt)
