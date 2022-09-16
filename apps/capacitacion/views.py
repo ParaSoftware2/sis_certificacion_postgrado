@@ -624,18 +624,22 @@ class VerActaAsistenciaView(LoginRequiredMixin, BaseLogin, TemplateView):
         for p in participantes:
             detalles = DetalleAsistencia.objects.filter(persona_id=p.persona_id, acta_asistencia=acta).order_by('fecha')
             array_a = []
+            array_agregados = []
             for d in detalles:
                 array_a.append(d.estado)
-                array_asistencia.append({
-                    'id_acta': d.acta_asistencia_id,
-                    'id_persona': d.persona_id,
-                    'numero_documento': p.persona.numero_documento,
-                    'apellido_paterno': p.persona.apellido_paterno,
-                    'apellido_materno': p.persona.apellido_materno,
-                    'nombres': p.persona.nombres,
-                    'estados': array_a,
-                    'resultado': acta.notaparticipante_set.filter(persona=p.persona).last().resultado,
-                })
+                if p.persona.numero_documento not in array_agregados:
+                    array_asistencia.append({
+                        'id_acta': d.acta_asistencia_id,
+                        'id_persona': d.persona_id,
+                        'numero_documento': p.persona.numero_documento,
+                        'apellido_paterno': p.persona.apellido_paterno,
+                        'apellido_materno': p.persona.apellido_materno,
+                        'nombres': p.persona.nombres,
+                        'estados': array_a,
+                        'resultado': acta.notaparticipante_set.filter(persona=p.persona).last().resultado,
+                    })
+                    array_agregados.append(p.persona.numero_documento)
+
         context.update({
             'acta': acta,
             'fechas_unicas': fechas_unicas,
@@ -670,18 +674,21 @@ class VerActaAsistenciaModalView(LoginRequiredMixin, BaseLogin, TemplateView):
         for p in participantes:
             detalles = DetalleAsistencia.objects.filter(persona_id=p.persona_id, acta_asistencia=acta).order_by('fecha')
             array_a = []
+            array_agregados = []
             for d in detalles:
                 array_a.append(d.estado)
-                array_asistencia.append({
-                    'id_acta': d.acta_asistencia_id,
-                    'id_persona': d.persona_id,
-                    'numero_documento': p.persona.numero_documento,
-                    'apellido_paterno': p.persona.apellido_paterno,
-                    'apellido_materno': p.persona.apellido_materno,
-                    'nombres': p.persona.nombres,
-                    'estados': array_a,
-                    'resultado': acta.notaparticipante_set.filter(persona=p.persona).last().resultado,
-                })
+                if p.persona.numero_documento not in array_agregados:
+                    array_asistencia.append({
+                        'id_acta': d.acta_asistencia_id,
+                        'id_persona': d.persona_id,
+                        'numero_documento': p.persona.numero_documento,
+                        'apellido_paterno': p.persona.apellido_paterno,
+                        'apellido_materno': p.persona.apellido_materno,
+                        'nombres': p.persona.nombres,
+                        'estados': array_a,
+                        'resultado': acta.notaparticipante_set.filter(persona=p.persona).last().resultado,
+                    })
+                    array_agregados.append(p.persona.numero_documento)
         context.update({
             'acta': acta,
             'es_permitido': permitido,
@@ -863,7 +870,9 @@ class GeneraCertificadoPdf(LoginRequiredMixin, PdfCertView):
             tt = Table(data=data3, rowHeights=70, repeatCols=1, colWidths=230)
             tt.setStyle(self.table_style_firma)
             w, h = tt.wrap(0, 0)
-            if cant_firmas == 2:
+            if cant_firmas == 1:
+                tt.drawOn(self.canvas, 185 + cx, 245)
+            elif cant_firmas == 2:
                 tt.drawOn(self.canvas, 65 + cx, 245)
             else:
                 tt.drawOn(self.canvas, 50 + cx, 245)
@@ -873,7 +882,9 @@ class GeneraCertificadoPdf(LoginRequiredMixin, PdfCertView):
             tt = Table(data=data4, rowHeights=10, repeatCols=1, colWidths=238)
             tt.setStyle(self.table_style_firma)
             w, h = tt.wrap(0, 0)
-            if cant_firmas == 2:
+            if cant_firmas == 1:
+                tt.drawOn(self.canvas, 185 + cx, 190)
+            elif cant_firmas == 2:
                 tt.drawOn(self.canvas, 65 + cx, 190)
             else:
                 tt.drawOn(self.canvas, 37 + cx, 190)
@@ -990,10 +1001,10 @@ class ListaCapacitacionValidarView(LoginRequiredMixin, BaseLogin, View):
         else:
             capacitaciones = Capacitacion.objects.all().exclude(
                 estado=ESTADO_PROYECTO_REGISTRADO).order_by('-fecha_creacion')
-        
+
         if estado and estado in ['por_validar', 'validado', 'cancelado', 'culminado', 'observado']:
             capacitaciones = capacitaciones.filter(estado=estado)
-            
+
         if inicio is not None:
             capacitaciones = capacitaciones.filter(fecha_inicio__gte=inicio)
 
@@ -1209,27 +1220,32 @@ class RevisarCapacitacionView(LoginRequiredMixin, APIView):
     def post(self, request, *args, **kwargs):
         if request.method == 'POST':
             data = request.POST
+
             capacitacion_id = data.get('id')
             estado = data.get('estado')
             culminacion = data.get('culminacion')
             res = True
+
             if capacitacion_id:
                 miembros_consejo = Persona.objects.filter(tipo_persona=TIPO_PERSONA_CONSEJO_UNASAM)
                 if not miembros_consejo:
                     errors = 'No existe miembros del consejo UNASAM registrados, no puede realizar esta acción'
                     return JsonResponse({'error': f"{errors}"}, status=HTTP_400_BAD_REQUEST)
                 capacitacion = get_object_or_404(Capacitacion, pk=capacitacion_id)
+
                 if estado == ESTADO_PROYECTO_CULMINADO:
-                    if capacitacion.responsablefirma_set.all().count() < 2:
-                        errors = '''No se puede dar por culminado porque debe contar como mínimo con 2 firmantes asignados'''
-                        return JsonResponse({'error': f"{errors}"}, status=HTTP_400_BAD_REQUEST)
+                    # if capacitacion.responsablefirma_set.all().count() < 2:
+                    #     errors = '''No se puede dar por culminado porque debe contar como mínimo con 2 firmantes asignados'''
+                    #     return JsonResponse({'error': f"{errors}"}, status=HTTP_400_BAD_REQUEST)
                     modulos = [m for m in capacitacion.modulo_set.all()]
                     actas = [a for a in ActaAsistencia.objects.filter(modulo__capacitacion=capacitacion).order_by(
                         'modulo_id')]
                     if len(modulos) != len(actas):
                         errors = '''No se puede dar por culminado porque cuenta con módulo(s) sin acta de asistencia'''
                         return JsonResponse({'error': f"{errors}"}, status=HTTP_400_BAD_REQUEST)
+
                     res = self.insert_emision_cert(capacitacion, capacitacion.tipo_emision_certificado, modulos, actas)
+
                 if res:
                     capacitacion.estado = estado
                     capacitacion.observacion_revision = None
@@ -1307,7 +1323,8 @@ class RevisarCapacitacionView(LoginRequiredMixin, APIView):
                                                        modificado_por=self.request.user.username,
                                                        cargo=CARGO_CERT_EMITIDO_ASISTENTE)
                 res = True
-            except Exception:
+            except Exception as e:
+                print("Error!", e)
                 res = False
         if tipo_emision_cert in (EMISION_CERTIFICADO_MODULOS, EMISION_CERTIFICADO_UNICO_Y_MODULOS):
             try:
@@ -1583,7 +1600,9 @@ class GenerarMultipleCertificadosPdfView(LoginRequiredMixin, PdfCertView):
                 tt = Table(data=data3, rowHeights=70, repeatCols=1, colWidths=230)
                 tt.setStyle(self.table_style_firma)
                 w, h = tt.wrap(0, 0)
-                if cant_firmas == 2:
+                if cant_firmas == 1:
+                    tt.drawOn(self.canvas, 185 + cx, 190)
+                elif cant_firmas == 2:
                     tt.drawOn(self.canvas, 65 + cx, 245)
                 else:
                     tt.drawOn(self.canvas, 50 + cx, 245)
@@ -1593,7 +1612,9 @@ class GenerarMultipleCertificadosPdfView(LoginRequiredMixin, PdfCertView):
                 tt = Table(data=data4, rowHeights=10, repeatCols=1, colWidths=238)
                 tt.setStyle(self.table_style_firma)
                 w, h = tt.wrap(0, 0)
-                if cant_firmas == 2:
+                if cant_firmas == 1:
+                    tt.drawOn(self.canvas, 185 + cx, 190)
+                elif cant_firmas == 2:
                     tt.drawOn(self.canvas, 65 + cx, 190)
                 else:
                     tt.drawOn(self.canvas, 37 + cx, 190)
@@ -1999,7 +2020,9 @@ class GeneraCertificadoPdfPorModulo(LoginRequiredMixin, PdfCertView):
                 tt = Table(data=data3, rowHeights=70, repeatCols=1, colWidths=230)
                 tt.setStyle(self.table_style_firma)
                 w, h = tt.wrap(0, 0)
-                if cant_firmas == 2:
+                if cant_firmas == 1:
+                    tt.drawOn(self.canvas, 185 + cx, 245)
+                elif cant_firmas == 2:
                     tt.drawOn(self.canvas, 65 + cx, 245)
                 else:
                     tt.drawOn(self.canvas, 50 + cx, 245)
@@ -2011,7 +2034,9 @@ class GeneraCertificadoPdfPorModulo(LoginRequiredMixin, PdfCertView):
                 tt = Table(data=data4, rowHeights=10, repeatCols=1, colWidths=238)
                 tt.setStyle(self.table_style_firma)
                 w, h = tt.wrap(0, 0)
-                if cant_firmas == 2:
+                if cant_firmas == 1:
+                    tt.drawOn(self.canvas, 185 + cx, 190)
+                elif cant_firmas == 2:
                     tt.drawOn(self.canvas, 65 + cx, 190)
                 else:
                     tt.drawOn(self.canvas, 37 + cx, 190)
@@ -2299,7 +2324,9 @@ class GenerarMultipleCertificadosPorModPdfView(LoginRequiredMixin, PdfCertView):
                 tt = Table(data=data3, rowHeights=70, repeatCols=1, colWidths=230)
                 tt.setStyle(self.table_style_firma)
                 w, h = tt.wrap(0, 0)
-                if cant_firmas == 2:
+                if cant_firmas == 1:
+                    tt.drawOn(self.canvas, 185 + cx, 245)
+                elif cant_firmas == 2:
                     tt.drawOn(self.canvas, 65 + cx, 245)
                 else:
                     tt.drawOn(self.canvas, 50 + cx, 245)
@@ -2309,7 +2336,9 @@ class GenerarMultipleCertificadosPorModPdfView(LoginRequiredMixin, PdfCertView):
                 tt = Table(data=data4, rowHeights=10, repeatCols=1, colWidths=238)
                 tt.setStyle(self.table_style_firma)
                 w, h = tt.wrap(0, 0)
-                if cant_firmas == 2:
+                if cant_firmas == 1:
+                    tt.drawOn(self.canvas, 185 + cx, 190)
+                elif cant_firmas == 2:
                     tt.drawOn(self.canvas, 65 + cx, 190)
                 else:
                     tt.drawOn(self.canvas, 37 + cx, 190)
