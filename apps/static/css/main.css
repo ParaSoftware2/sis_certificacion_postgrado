@@ -172,8 +172,8 @@ td.btn-doble {
 
 /* Login */
 .page-login {
-  background-color: #4e73df;
-  background-image: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
+  background-color: #8B1C0F;
+  background-image: linear-gradient(to bottom, rgba(163,0,0,1) 0%, rgba(163,0,0,1) 10%, rgba(143,3,3,1) 21%, rgba(106,9,9,1) 41%);
   background-size: cover;
 }
 
@@ -503,7 +503,7 @@ td.btn-doble {
 }
 
 .navbar {
-  background-color: #3c8dbc;
+  background-color: #6A0909FF;
   box-sizing: border-box;
   position: fixed;
   top: 0;
