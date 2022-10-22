@@ -1,5 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block container %}
-<label class="text-dark">Inicio</label>
+    <br/><br/>
+    <div class="col-lg-12">
+        <div class="jumbotron">
+            <h2 class="text-info text-uppercase text-lg">
+                Bienvenido
+                {% if fullname %}
+                    {{ fullname }}
+                {% else %}
+                    {{ username }}
+                {% endif %}
+            </h2>
+            <hr>
+            <p class="text-secondary">Explore las funcionalidades en la barra de navegación izquierda.</p>
+        </div>
+    </div>
 {% endblock %}
